@@ -5,6 +5,7 @@ from products import dodaj_proizvod, prikazi_proizvode
 from sales import prodaj_proizvod
 from report import prikazi_izvjestaj
 from datetime import datetime
+from db import connect
 
 def gui_dodaj_proizvod():
     def submit():
@@ -56,7 +57,7 @@ def gui_prikazi_proizvode():
     tree = ttk.Treeview(window, columns=("ID", "Naziv", "Kategorija", "Velicina", "Kolicina", "Cena"), show="headings")
     for col in tree["columns"]:
         tree.heading(col, text=col)
-    conn = __import__("db").connect()
+    conn = connect()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, category, size, quantity, selling_price FROM products")
     for row in cursor.fetchall():
@@ -73,8 +74,26 @@ def gui_prodaj_proizvod():
         messagebox.showinfo("Uspjeh", "Prodaja zabiljezena.")
         
         
-def gui_izvjestaj():
-    prikazi_izvjestaj()
+def gui_prikazi_prodaju():
+    window = tk.Toplevel(root)
+    window.title("Prodaja - istorija")
+
+    tree = ttk.Treeview(window, columns=("ID", "Naziv", "Veličina", "Datum", "Količina", "Ukupno"), show='headings')
+    for col in tree["columns"]:
+        tree.heading(col, text=col)
+
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT s.id, p.name, p.size, s.date, s.quantity_sold, s.total_price
+        FROM sales s
+        JOIN products p ON s.product_id = p.id
+    """)
+    for row in cursor.fetchall():
+        tree.insert("", "end", values=row)
+    conn.close()
+
+    tree.pack(expand=True, fill="both")
     
 
 root = tk.Tk()
@@ -83,6 +102,6 @@ root.title("Evidencija Butika")
 tk.Button(root, text="Dodaj proizvod", width=30, command=gui_dodaj_proizvod).pack(pady=5)
 tk.Button(root, text="Prikazi proizvode", width=30, command=gui_prikazi_proizvode).pack(pady=5)
 tk.Button(root, text="Prodaj proizvod", width=30, command=gui_prodaj_proizvod).pack(pady=5)
-tk.Button(root, text="Izvjestaj o prodaji", width=30, command=gui_izvjestaj).pack(pady=5)
+tk.Button(root, text="Izvjestaj o prodaji", width=30, command=gui_prikazi_prodaju).pack(pady=5)
 
 root.mainloop()
