@@ -8,4 +8,5 @@
 - Sell Items
 - Show Sales
 
-
+## Running:
+### You can use the app in terminal just by running main.py or use GUI by running gui.py.
